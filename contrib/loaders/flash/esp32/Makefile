@@ -58,7 +58,7 @@ all: $(STUB_ELF) $(STUB_IMAGE_HDR) $(STUB_CODE_SECT) $(STUB_DATA_SECT)
 $(BUILD_DIR):
 	$(Q) mkdir $@
 
-CFLAGS = -std=c99 -Wall -Werror -Os \
+CFLAGS = -std=c99 -Wall -Os \
          -mtext-section-literals -mlongcalls -nostdlib -fno-builtin -flto \
          -Wl,-static -g -ffunction-sections -Wl,--gc-sections
 

@@ -772,7 +772,7 @@ AS_IF([test "x${gcc_wextra}" = "xyes"], [
   GCC_WARNINGS="${GCC_WARNINGS} -Wredundant-decls"
 ])
 AS_IF([test "x${gcc_werror}" = "xyes"], [
-  GCC_WARNINGS="${GCC_WARNINGS} -Werror"
+  GCC_WARNINGS="${GCC_WARNINGS}"
 ])
 
 # overide default gcc cflags
