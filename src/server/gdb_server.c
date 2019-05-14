@@ -2450,7 +2450,9 @@ static int gdb_generate_thread_list(struct target *target, char **thread_list_ou
 				continue;
 
 			xml_printf(&retval, &thread_list, &pos, &size,
-				   "<thread id=\"%" PRIx64 "\">", thread_detail->threadid);
+				   "<thread id=\"%" PRIx64 "\" name=\"%s\" %s>", thread_detail->threadid, thread_detail->thread_name_str,
+			thread_detail->threadid == rtos->current_threadid ? "core=\"0\"" : ""
+		 );
 
 			if (thread_detail->thread_name_str != NULL)
 				xml_printf(&retval, &thread_list, &pos, &size,
