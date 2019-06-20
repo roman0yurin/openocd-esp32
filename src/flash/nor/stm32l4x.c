@@ -25,6 +25,8 @@
 #include <target/algorithm.h>
 #include <target/armv7m.h>
 
+#include <signal.h>
+
 /* STM32L4xxx series for reference.
  *
  * RM0351 (STM32L4x5/STM32L4x6)
@@ -540,11 +542,33 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	return retval;
 }
 
+static int stm32l4_mass_erase(struct flash_bank *bank, uint32_t action);
+
+
+int doMassErase(struct flash_bank *bank){
+	int i, retval;
+	uint32_t action;
+
+	action =  FLASH_MER1 |  FLASH_MER2;
+	retval = stm32l4_mass_erase(bank, action);
+	if (retval == ERROR_OK) {
+		/* set all sectors as erased */
+		for (i = 0; i < bank->num_sectors; i++)
+			bank->sectors[i].is_erased = 1;
+
+	}
+
+	return retval;
+}
+
+
 static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t offset, uint32_t count)
 {
+
 	struct target *target = bank->target;
-	int retval;
+	//Для записи большого объема памяти предварительно нужен полный сброс
+	int retval = doMassErase(bank);
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -818,11 +842,9 @@ static int stm32l4_mass_erase(struct flash_bank *bank, uint32_t action)
 	return ERROR_OK;
 }
 
+
 COMMAND_HANDLER(stm32l4_handle_mass_erase_command)
 {
-	int i;
-	uint32_t action;
-
 	if (CMD_ARGC < 1) {
 		command_print(CMD_CTX, "stm32l4x mass_erase <STM32L4 bank>");
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -831,20 +853,10 @@ COMMAND_HANDLER(stm32l4_handle_mass_erase_command)
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
 	if (ERROR_OK != retval)
-		return retval;
+	return retval;
 
-	action =  FLASH_MER1 |  FLASH_MER2;
-	retval = stm32l4_mass_erase(bank, action);
-	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
-		command_print(CMD_CTX, "stm32l4x mass erase complete");
-	} else {
-		command_print(CMD_CTX, "stm32l4x mass erase failed");
-	}
-
+	retval = doMassErase(bank);
+	command_print(CMD_CTX, "stm32l4x mass erase complete");
 	return retval;
 }
 
